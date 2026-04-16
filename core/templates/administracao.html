@@ -1,0 +1,86 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Administração</title>
+
+    <link rel="stylesheet" href="{% static 'main/adm.css' %}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+
+<!-- NAVBAR -->
+<div class="navbar">
+    <div class="logo">📊 Dashboard</div>
+
+    <div class="nav-links">
+        <a href="{% url 'dashboard' %}">Dashboard</a>
+        <a href="{% url 'atestados' %}">Atestados</a>
+        <a href="{% url 'contratos' %}">Contratos</a>
+    </div>
+</div>
+
+<!-- VOLTAR -->
+<div class="top-actions">
+    <a href="{% url 'dashboard' %}" class="btn-voltar">← Voltar</a>
+</div>
+
+<!-- CONTEÚDO -->
+<div class="content">
+
+    <h1>Administração</h1>
+
+    <!-- KPIs -->
+    <div class="kpi-container">
+
+        <div class="card">
+            <h2>Total de Atestados</h2>
+            <p class="numero">{{ total_atestados }}</p>
+        </div>
+
+        <div class="card">
+            <h2>Absenteísmo do mês</h2>
+            <p class="numero">{{ absenteismo }}%</p>
+        </div>
+
+    </div>
+
+    <!-- GRÁFICO -->
+    <div class="grafico-container">
+        <h2>Atestados</h2>
+        <canvas id="grafico"></canvas>
+    </div>
+
+</div>
+
+<!-- CHART -->
+<script>
+const ctx = document.getElementById('grafico');
+
+new Chart(ctx, {
+    type: 'bar',
+    data: {
+        labels: {{ labels|safe }},
+        datasets: [{
+            label: 'Atestados',
+            data: {{ values|safe }},
+            backgroundColor: '#4a90e2',
+            borderRadius: 6
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: { display: false }
+        },
+        scales: {
+            y: { beginAtZero: true }
+        }
+    }
+});
+</script>
+
+</body>
+</html>

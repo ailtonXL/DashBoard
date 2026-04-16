@@ -1,0 +1,102 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Cadastrar Atestado</title>
+    <link rel="stylesheet" href="{% static 'main/atestado.css' %}">
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar">
+    <div class="navbar-left">
+             <img src="{% static 'assets/LogoCamaleao.svg' %}" alt="Logo">
+    </div>
+
+    <div class="navbar-right">
+        <a href="/administracao/" class="btn-back">← Voltar</a>
+    </div>
+</nav>
+
+<!-- CONTAINER -->
+<div class="container">
+
+    <h1>Cadastrar Atestado</h1>
+
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <div class="form-group">
+            <label>Nome</label>
+            {{ form.nome }}
+        </div>
+
+        <div class="form-group">
+            <label>Data início</label>
+            {{ form.data_inicio }}
+        </div>
+
+        <div class="form-group">
+            <label>Data fim</label>
+            {{ form.data_fim }}
+        </div>
+
+        <!-- DROPZONE -->
+        <div class="form-group">
+            <label>Arquivo</label>
+
+            <div class="dropzone" id="dropzone">
+                <p>📂 Arraste o arquivo aqui ou clique para selecionar</p>
+                <span id="file-name">Nenhum arquivo selecionado</span>
+            </div>
+
+            {{ form.arquivo }}
+        </div>
+
+        <button type="submit">Salvar</button>
+    </form>
+
+</div>
+
+<script>
+const input = document.getElementById("id_arquivo");
+const dropzone = document.getElementById("dropzone");
+const fileName = document.getElementById("file-name");
+
+// clique abre seletor
+dropzone.addEventListener("click", () => input.click());
+
+// drag over
+dropzone.addEventListener("dragover", (e) => {
+    e.preventDefault();
+    dropzone.classList.add("active");
+});
+
+// drag leave
+dropzone.addEventListener("dragleave", () => {
+    dropzone.classList.remove("active");
+});
+
+// drop file
+dropzone.addEventListener("drop", (e) => {
+    e.preventDefault();
+    dropzone.classList.remove("active");
+
+    input.files = e.dataTransfer.files;
+    updateName();
+});
+
+// input normal
+input.addEventListener("change", updateName);
+
+function updateName() {
+    fileName.textContent = input.files.length
+        ? input.files[0].name
+        : "Nenhum arquivo selecionado";
+}
+</script>
+
+</body>
+</html>

@@ -1,0 +1,76 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard</title>
+
+    <link rel="stylesheet" href="{% static 'main/dashboard.css' %}">
+</head>
+
+<body>
+
+    <div class="sidebar">
+
+        <div class="logo">
+             <img src="{% static 'assets/LogoCamaleao.svg' %}" alt="Logo">
+        </div>
+
+        <ul class="menu">
+
+            <li><a href="{% url 'administracao' %}">Administração</a></li>
+            <li><a href="{% url 'gerencia' %}">Gerência</a></li>
+            <li><a href="{% url 'logistica' %}">Logística</a></li>
+            <li><a href="{% url 'manutencao' %}">Manutenção</a></li>
+            <li><a href="{% url 'meio_ambiente' %}">Meio Ambiente</a></li>
+
+            <li><a href="{% url 'operacoes' %}">Operações</a></li>
+            <li><a href="{% url 'qualidade_processos' %}">Qualidade e Processos</a></li>
+            <li><a href="{% url 'saude_seguranca' %}">Saúde e Segurança do Trabalho</a></li>
+            <li><a href="{% url 'suprimentos' %}">Suprimentos</a></li>
+
+        </ul>
+
+    </div>
+
+    <div class="content">
+        <h1>Dashboard</h1>
+
+        <canvas id="absenteismoChart"></canvas>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        const nomes = JSON.parse('{{ nomes_json|escapejs }}');
+        const absenteismos = JSON.parse('{{ absenteismos_json|escapejs }}');
+
+        const ctx = document.getElementById('absenteismoChart');
+
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: nomes,
+                datasets: [{
+                    label: 'Absenteísmo (%)',
+                    data: absenteismos,
+                    backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 100
+                    }
+                }
+            }
+        });
+    </script>
+
+</body>
+</html>
