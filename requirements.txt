@@ -1,7 +1,10 @@
-django
-djangorestframework
-django-filter
-django-crispy-forms
-crispy-bootstrap5
-pillow
-gunicorn
+asgiref==3.11.1
+crispy-bootstrap5==2026.3
+Django==6.0.4
+django-crispy-forms==2.6
+django-filter==25.2
+djangorestframework==3.17.1
+pillow==12.2.0
+sqlparse==0.5.5
+whitenoise==6.12.0
+
