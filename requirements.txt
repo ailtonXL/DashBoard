@@ -1,10 +1,6 @@
-asgiref
-crispy-bootstrap5
-Django
-django-crispy-forms
-django-filter
+Django>=4.2
+gunicorn
 djangorestframework
-pillow
-sqlparse
+crispy-bootstrap5
 whitenoise
-
+psycopg2-binary
