@@ -106,7 +106,7 @@
     <div class="sidebar">
 
         <div class="logo">
-               <img src="{% static 'assets/LogoCamaleao.svg' %}" alt="Logo Camaleao">
+               <a href="{% url 'dashboard' %}"><img src="{% static 'assets/LogoCamaleao.svg' %}" alt="Logo Camaleao"></a>
         </div>
 
         <div class="user-info">
@@ -127,6 +127,7 @@
                         🏢 Administração
                     </div>
                     <div class="submenu" id="admin-submenu">
+                        <a href="{% url 'administracao' %}">📊 Gráfico Administração</a>
                         <a href="{% url 'documentos' %}">📋 Documentos</a>
                         <a href="{% url 'contratos' %}">📄 Contratos</a>
                     </div>
@@ -174,7 +175,27 @@
     <div class="content">
         <h1>Dashboard</h1>
 
-        <canvas id="absenteismoChart"></canvas>
+        <div class="charts-grid">
+            <!-- Gráfico 1: Absenteísmo por funcionário -->
+            <div class="chart-card">
+                <h2 class="chart-titulo">Absenteísmo por Funcionário</h2>
+                <div style="max-width: 320px; margin: 0 auto;">
+                    <canvas id="absenteismoChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Gráfico 2: Absenteísmo geral -->
+            <div class="chart-card">
+                <h2 class="chart-titulo">Absenteísmo Geral</h2>
+                <div style="max-width: 320px; margin: 0 auto;">
+                    <canvas id="geralChart"></canvas>
+                </div>
+                <div class="chart-legenda-geral">
+                    <span class="legenda-item" style="--cor: #e74c3c;">🔴 Ausente: {{ absenteismo_medio }}%</span>
+                    <span class="legenda-item" style="--cor: #1a5fb4;">🔵 Presente: {{ presenca_media }}%</span>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -216,6 +237,35 @@
                 plugins: {
                     legend: {
                         position: 'bottom'
+                    }
+                }
+            }
+        });
+
+        // Gráfico 2: Absenteísmo Geral
+        const absenteismoMedio = {{ absenteismo_medio }};
+        const presencaMedia = {{ presenca_media }};
+        const ctx2 = document.getElementById('geralChart');
+
+        new Chart(ctx2, {
+            type: 'pie',
+            data: {
+                labels: ['Ausente', 'Presente'],
+                datasets: [{
+                    data: [absenteismoMedio, presencaMedia],
+                    backgroundColor: ['#e74c3c', '#1a5fb4'],
+                    borderColor: '#ffffff',
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { position: 'bottom' },
+                    tooltip: {
+                        callbacks: {
+                            label: (ctx) => ` ${ctx.label}: ${ctx.parsed.toFixed(2)}%`
+                        }
                     }
                 }
             }

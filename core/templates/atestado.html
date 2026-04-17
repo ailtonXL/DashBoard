@@ -12,7 +12,7 @@
 <!-- NAVBAR -->
 <nav class="navbar">
     <div class="navbar-left">
-             <img src="{% static 'assets/LogoCamaleao.svg' %}" alt="Logo Camaleao">
+             <a href="{% url 'dashboard' %}"><img src="{% static 'assets/LogoCamaleao.svg' %}" alt="Logo Camaleao"></a>
     </div>
 
     <div class="navbar-right">
@@ -73,9 +73,31 @@
             {{ form.hora_retorno }}
         </div>
 
+        <!-- 📊 CÁLCULO DE DIAS E HORAS -->
+        <div class="form-group resultado-calculo" id="resultado-calculo" style="display: none;">
+            <label style="color: #0a2f73; font-weight: bold;">⏱️ Tempo de Afastamento</label>
+            <div class="calculo-box">
+                <div class="calculo-item">
+                    <span class="calculo-label">Dias:</span>
+                    <span class="calculo-valor" id="dias-resultado">0</span>
+                </div>
+                <div class="calculo-item">
+                    <span class="calculo-label">Horas:</span>
+                    <span class="calculo-valor" id="horas-resultado">0</span>
+                </div>
+                <div class="calculo-item">
+                    <span class="calculo-label">Absenteísmo:</span>
+                    <span class="calculo-valor" id="absenteismo-resultado">0%</span>
+                </div>
+            </div>
+        </div>
+
         <div class="form-group">
             <label>Classificação</label>
             {{ form.classificacao }}
+            {% if form.classificacao.errors %}
+                <div class="error-message">{{ form.classificacao.errors.0 }}</div>
+            {% endif %}
         </div>
 
         <div class="form-group">
@@ -84,8 +106,25 @@
         </div>
 
         <div class="form-group">
-            <label>CRM / CRO / CRESS</label>
+            <label>CRM / CRO / CRESS <span style="font-size:12px;color:#888;font-weight:normal;">(apenas números)</span></label>
             {{ form.crm_cro_cress }}
+            {% if form.crm_cro_cress.errors %}
+                <div class="error-message">{{ form.crm_cro_cress.errors.0 }}</div>
+            {% endif %}
+        </div>
+
+        <div class="form-group">
+            <label for="id_uf">UF</label>
+            <div class="tipo-select-wrap">
+                <select name="uf" id="id_uf" class="campo-tipo" required>
+                    {% for value, label in form.uf.field.choices %}
+                        <option value="{{ value }}" {% if form.uf.value == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            {% if form.uf.errors %}
+                <div class="error-message">{{ form.uf.errors.0 }}</div>
+            {% endif %}
         </div>
 
         <!-- DROPZONE -->
@@ -104,6 +143,100 @@
     </form>
 
 </div>
+
+<script>
+// 🔢 VALIDAÇÃO: CRM/CRO/CRESS APENAS NÚMEROS
+const campoCRM = document.getElementById('id_crm_cro_cress');
+if (campoCRM) {
+    campoCRM.addEventListener('input', function () {
+        this.value = this.value.replace(/\D/g, '');
+    });
+    campoCRM.addEventListener('keypress', function (e) {
+        if (!/[0-9]/.test(e.key) && !['Backspace', 'Delete', 'Tab', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+            e.preventDefault();
+        }
+    });
+}
+
+// ⏱️ CÁLCULO DE TEMPO DE AFASTAMENTO
+function calcularDiasHoras() {
+    const dataINI = document.getElementById('id_data_inicio').value;
+    const dataFIM = document.getElementById('id_data_fim').value;
+    const horaSAIDA = document.getElementById('id_hora_saida').value || '00:00';
+    const horaRETORNO = document.getElementById('id_hora_retorno').value || '00:00';
+
+    if (!dataINI || !dataFIM) {
+        document.getElementById('resultado-calculo').style.display = 'none';
+        return;
+    }
+
+    try {
+        // Parseear datas (formato HTML5: YYYY-MM-DD)
+        const [anoINI, mesINI, diaINI] = dataINI.split('-').map(Number);
+        const [anoFIM, mesFIM, diaFIM] = dataFIM.split('-').map(Number);
+
+        const dtINI = new Date(anoINI, mesINI - 1, diaINI);
+        const dtFIM = new Date(anoFIM, mesFIM - 1, diaFIM);
+
+        // Validar se data_fim >= data_inicio
+        if (dtFIM < dtINI) {
+            alert('⚠️ Data de fim não pode ser antes da data de início!');
+            document.getElementById('resultado-calculo').style.display = 'none';
+            return;
+        }
+
+        // Parsear horas
+        const [hSAIDA, minSAIDA] = horaSAIDA.split(':').map(Number);
+        const [hRETORNO, minRETORNO] = horaRETORNO.split(':').map(Number);
+
+        // Criar timestamps com horas
+        dtINI.setHours(hSAIDA, minSAIDA, 0, 0);
+        dtFIM.setHours(hRETORNO, minRETORNO, 0, 0);
+
+        // Calcular diferença em ms
+        let diferencaMs = dtFIM - dtINI;
+
+        // Se a diferença for negativa (mesma data, hora retorno < hora saída)
+        if (diferencaMs < 0) {
+            alert('⚠️ Hora de retorno não pode ser antes da hora de saída (mesma data)!');
+            document.getElementById('resultado-calculo').style.display = 'none';
+            return;
+        }
+
+        // Converter para dias e horas
+        const totalHoras = diferencaMs / (1000 * 60 * 60);
+        const dias = Math.floor(totalHoras / 24);
+        const horas = Math.round((totalHoras % 24) * 10) / 10; // Arredondar a 1 casa decimal
+
+        // Calcular absenteísmo (dias úteis = 22 por mês)
+        const absenteismo = ((dias + (horas / 24)) / 22 * 100).toFixed(2);
+
+        // Atualizar elementos
+        document.getElementById('dias-resultado').textContent = dias;
+        document.getElementById('horas-resultado').textContent = horas.toFixed(1);
+        document.getElementById('absenteismo-resultado').textContent = absenteismo + '%';
+
+        // Mostrar resultado
+        document.getElementById('resultado-calculo').style.display = 'block';
+
+    } catch (e) {
+        console.error('Erro ao calcular:', e);
+        document.getElementById('resultado-calculo').style.display = 'none';
+    }
+}
+
+// Listeners para recalcular quando mudar os campos
+document.getElementById('id_data_inicio').addEventListener('change', calcularDiasHoras);
+document.getElementById('id_data_fim').addEventListener('change', calcularDiasHoras);
+document.getElementById('id_hora_saida').addEventListener('change', calcularDiasHoras);
+document.getElementById('id_hora_retorno').addEventListener('change', calcularDiasHoras);
+
+// Também recalcular enquanto digita
+document.getElementById('id_data_inicio').addEventListener('input', calcularDiasHoras);
+document.getElementById('id_data_fim').addEventListener('input', calcularDiasHoras);
+document.getElementById('id_hora_saida').addEventListener('input', calcularDiasHoras);
+document.getElementById('id_hora_retorno').addEventListener('input', calcularDiasHoras);
+</script>
 
 <script>
 const input = document.getElementById("id_arquivo");

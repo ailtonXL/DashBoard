@@ -4,7 +4,8 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from .forms import AtestadoForm, LoginForm
 from .models import Atestado, UsuarioComRole
-from django.db.models import Avg
+from django.db.models import Avg, Sum
+from django.db import models
 import json
 from functools import wraps
 from django.views.decorators.cache import never_cache
@@ -58,15 +59,27 @@ def check_permission(required_role):
 
 
 def build_area_context(area_nome, descricao, prioridade_titulos):
-    documentos = Atestado.objects.all().order_by('-created_at')
-
+    # Considerar apenas documentos processados
+    documentos = Atestado.objects.filter(processado=True).order_by('-created_at')
+    
+    # Total de documentos processados
     total_documentos = documentos.count()
-    absenteismo_medio = documentos.aggregate(media=Avg('absenteismo'))['media'] or 0
+    
+    # Absenteismo médio (excluindo valores 0)
+    docs_com_absenteismo = documentos.filter(absenteismo__gt=0)
+    absenteismo_medio = docs_com_absenteismo.aggregate(media=Avg('absenteismo'))['media'] or 0
 
+    # Documentos e dias do mês
     hoje = timezone.now().date()
     inicio_mes = hoje.replace(day=1)
     documentos_mes = documentos.filter(created_at__date__gte=inicio_mes).count()
+    
+    # Total de dias afastados no mês
+    dias_afastados_mes = documentos.filter(created_at__date__gte=inicio_mes).aggregate(
+        total=models.Sum('dias_afastado')
+    )['total'] or 0
 
+    # Últimos documentos processados
     ultimos_documentos = []
     for item in documentos[:6]:
         ultimos_documentos.append({
@@ -74,6 +87,7 @@ def build_area_context(area_nome, descricao, prioridade_titulos):
             'empresa': item.empresa,
             'tipo': item.get_tipo_display(),
             'periodo': f"{item.data_inicio} ate {item.data_fim}",
+            'dias': item.dias_afastado,
         })
 
     return {
@@ -82,6 +96,7 @@ def build_area_context(area_nome, descricao, prioridade_titulos):
         'indicadores': [
             {'titulo': 'Total de Documentos', 'valor': total_documentos},
             {'titulo': 'Documentos no Mes', 'valor': documentos_mes},
+            {'titulo': 'Dias Afastados (Mes)', 'valor': dias_afastados_mes},
             {'titulo': 'Absenteismo Medio', 'valor': f"{round(absenteismo_medio, 2)}%"},
         ],
         'prioridades': prioridade_titulos,
@@ -91,34 +106,95 @@ def build_area_context(area_nome, descricao, prioridade_titulos):
 
 @login_required(login_url='login')
 def dashboard(request):
-    atestados = Atestado.objects.all()
+    # Considerar apenas documentos processados
+    atestados = Atestado.objects.filter(processado=True).order_by('-absenteismo')
 
     nomes = [a.nome for a in atestados]
     absenteismos = [a.absenteismo for a in atestados]
 
+    # Dados para gráfico geral: absenteísmo total vs horas trabalhadas
+    total_absenteismo = sum(absenteismos)
+    # Base: 22 dias úteis * quantidade de documentos, em %
+    total_documentos = len(absenteismos)
+    absenteismo_medio = round(total_absenteismo / total_documentos, 2) if total_documentos > 0 else 0
+    presenca_media = round(100 - absenteismo_medio, 2)
+
     return render(request, "dashboard.html", {
         "nomes_json": json.dumps(nomes),
         "absenteismos_json": json.dumps(absenteismos),
+        "absenteismo_medio": absenteismo_medio,
+        "presenca_media": presenca_media,
     })
 
 
 @login_required(login_url='login')
 @check_permission('admin')
 def administracao(request):
-    atestados = Atestado.objects.all()
+    # Considerar apenas documentos processados
+    atestados = Atestado.objects.filter(processado=True).order_by('-absenteismo')
 
     total_atestados = atestados.count()
-    labels = [a.nome for a in atestados]
-    values = [a.absenteismo for a in atestados]
+    
+    # Gerar dados para gráfico (top 10 com maior absenteísmo)
+    labels = [a.nome for a in atestados[:10]]
+    values = [a.absenteismo for a in atestados[:10]]
 
-    # absenteísmo médio do mês
-    absenteismo_medio = atestados.aggregate(media=Avg("absenteismo"))["media"] or 0
+    # Absenteísmo médio apenas de documentos com absenteísmo > 0
+    atestados_com_absenteismo = atestados.filter(absenteismo__gt=0)
+    absenteismo_medio = atestados_com_absenteismo.aggregate(media=Avg("absenteismo"))["media"] or 0
+    
+    # Total de dias afastados
+    total_dias_afastados = atestados.aggregate(total=Sum('dias_afastado'))['total'] or 0
 
     return render(request, "administracao.html", {
         "total_atestados": total_atestados,
         "absenteismo": round(absenteismo_medio, 2),
         "labels_json": json.dumps(labels),
         "values_json": json.dumps(values),
+        "total_dias_afastados": total_dias_afastados,
+    })
+
+
+@login_required(login_url='login')
+@check_permission('admin')
+def buscar_documentos(request):
+    """Buscar documentos por nome do funcionário e acessar arquivos."""
+    query = request.GET.get('q', '').strip()
+    documentos = []
+    
+    if query:
+        # Buscar documentos que contenham o nome pesquisado
+        documentos = Atestado.objects.filter(
+            nome__icontains=query,
+            processado=True
+        ).order_by('-created_at')
+    
+    # Preparar dados para exibição
+    docs_com_arquivo = []
+    for doc in documentos:
+        docs_com_arquivo.append({
+            'id': doc.id,
+            'nome': doc.nome,
+            'empresa': doc.empresa,
+            'tipo': doc.get_tipo_display(),
+            'data_inicio': doc.data_inicio,
+            'data_fim': doc.data_fim,
+            'dias_afastado': doc.dias_afastado,
+            'absenteismo': doc.absenteismo,
+            'arquivo_url': doc.arquivo.url if doc.arquivo else None,
+            'arquivo_nome': doc.arquivo.name.split('/')[-1] if doc.arquivo else 'Sem arquivo',
+            'created_at': doc.created_at,
+        })
+    
+    return render(request, "administracao.html", {
+        "aba_ativa": "busca",
+        "query": query,
+        "documentos_encontrados": docs_com_arquivo,
+        "total_encontrados": len(docs_com_arquivo),
+        "total_atestados": 0,
+        "absenteismo": 0,
+        "labels_json": json.dumps([]),
+        "values_json": json.dumps([]),
     })
 
 
@@ -131,7 +207,8 @@ def atestados(request):
         form = AtestadoForm(request.POST, request.FILES)
 
         if form.is_valid():
-            form.save()
+            documento = form.save()
+            # Os cálculos são feitos automaticamente no save() do modelo
             return redirect("documentos")
     else:
         form = AtestadoForm()

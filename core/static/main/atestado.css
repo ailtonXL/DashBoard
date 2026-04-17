@@ -241,3 +241,51 @@ button {
 button:hover {
     background: #114a96;
 }
+
+/* ========================= */
+/* ⏱️ RESULTADO CÁLCULO */
+/* ========================= */
+
+.resultado-calculo {
+    background: linear-gradient(135deg, #f0f7ff 0%, #eef5ff 100%) !important;
+    border: 2px solid #1a5fb4 !important;
+    border-radius: 12px !important;
+    padding: 20px !important;
+    margin-bottom: 20px !important;
+    box-shadow: 0 4px 15px rgba(26, 95, 180, 0.15) !important;
+}
+
+.calculo-box {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-top: 12px;
+}
+
+.calculo-item {
+    background: white;
+    padding: 12px;
+    border-radius: 10px;
+    border-left: 4px solid #1a5fb4;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.calculo-label {
+    font-size: 12px;
+    font-weight: bold;
+    color: #0a2f73;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+    letter-spacing: 0.5px;
+}
+
+.calculo-valor {
+    font-size: 24px;
+    font-weight: bold;
+    color: #1a5fb4;
+    text-align: center;
+}

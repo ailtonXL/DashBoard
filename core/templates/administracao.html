@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <title>Administração</title>
 
-    <link rel="stylesheet" href="{% static 'main/adm.css' %}">
+    <link rel="stylesheet" href="{% static 'main/adm.css' %}?v=2">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
@@ -14,7 +14,7 @@
 <!-- NAVBAR -->
 <div class="navbar">
     <div class="logo">
-        <img src="{% static 'assets/LogoCamaleao.svg' %}" alt="Logo Camaleao">
+        <a href="{% url 'dashboard' %}"><img src="{% static 'assets/LogoCamaleao.svg' %}" alt="Logo Camaleao"></a>
     </div>
 
     <div class="nav-links">
@@ -29,61 +29,237 @@
     <a href="{% url 'dashboard' %}" class="btn-voltar">← Voltar</a>
 </div>
 
+<!-- ABAS -->
+<div class="tabs-container">
+    <button class="tab-btn {% if aba_ativa != 'busca' %}active{% endif %}" onclick="mostrarAba('dashboard')">
+        📊 Dashboard
+    </button>
+    <button class="tab-btn {% if aba_ativa == 'busca' %}active{% endif %}" onclick="mostrarAba('busca')">
+        🔍 Buscar Funcionário
+    </button>
+</div>
+
 <!-- CONTEÚDO -->
 <div class="content">
 
-    <h1>Administração</h1>
+    <!-- ABA: DASHBOARD -->
+    <div id="aba-dashboard" class="aba-content {% if aba_ativa == 'busca' %}hidden{% endif %}">
+        <h1>Administração</h1>
 
-    <!-- KPIs -->
-    <div class="kpi-container">
+        <!-- KPIs -->
+        <div class="kpi-container">
+            <div class="card">
+                <h2>Total de Documentos</h2>
+                <p class="numero">{{ total_atestados }}</p>
+            </div>
 
-        <div class="card">
-            <h2>Total de Documentos</h2>
-            <p class="numero">{{ total_atestados }}</p>
+            <div class="card">
+                <h2>Absenteísmo do mês</h2>
+                <p class="numero">{{ absenteismo }}%</p>
+            </div>
         </div>
 
-        <div class="card">
-            <h2>Absenteísmo do mês</h2>
-            <p class="numero">{{ absenteismo }}%</p>
+        <!-- GRÁFICO -->
+        <div class="grafico-container">
+            <h2>Documentos</h2>
+            <canvas id="grafico"></canvas>
         </div>
-
     </div>
 
-    <!-- GRÁFICO -->
-    <div class="grafico-container">
-        <h2>Documentos</h2>
-        <canvas id="grafico"></canvas>
+    <!-- ABA: BUSCA -->
+    <div id="aba-busca" class="aba-content {% if aba_ativa != 'busca' %}hidden{% endif %}">
+        <h1>🔍 Buscar Funcionário</h1>
+
+        <!-- FORMULÁRIO DE BUSCA -->
+        <div class="busca-container">
+            <form method="get" action="{% url 'buscar_documentos' %}" class="busca-form">
+                <div class="busca-input-group">
+                    <input 
+                        type="text" 
+                        name="q" 
+                        placeholder="Digite o nome do funcionário..." 
+                        value="{{ query }}"
+                        class="busca-input"
+                    >
+                    <button type="submit" class="busca-btn">🔍 Pesquisar</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- RESULTADOS -->
+        {% if query %}
+            {% if documentos_encontrados %}
+                <div class="resultado-header">
+                    <h2>Resultados para: <strong>{{ query }}</strong></h2>
+                    <span class="resultado-count">{{ total_encontrados }} documento(s) encontrado(s)</span>
+                </div>
+
+                <div class="documentos-lista">
+                    {% for doc in documentos_encontrados %}
+                        <div class="documento-card">
+                            <div class="doc-header">
+                                <h3>{{ doc.nome }}</h3>
+                                <span class="doc-data">{{ doc.created_at|date:"d/m/Y" }}</span>
+                            </div>
+
+                            <div class="doc-info">
+                                <div class="info-item">
+                                    <span class="info-label">Empresa:</span>
+                                    <span class="info-value">{{ doc.empresa }}</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">Tipo:</span>
+                                    <span class="info-value">{{ doc.tipo }}</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">Período:</span>
+                                    <span class="info-value">{{ doc.data_inicio }} até {{ doc.data_fim }}</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">Dias Afastado:</span>
+                                    <span class="info-value">{{ doc.dias_afastado }}</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">Absenteísmo:</span>
+                                    <span class="info-value">{{ doc.absenteismo }}%</span>
+                                </div>
+                            </div>
+
+                            <div class="doc-actions">
+                                {% if doc.arquivo_url %}
+                                    <button class="btn-preview" onclick="abrirPreview('{{ doc.arquivo_url }}', '{{ doc.arquivo_nome }}', '{{ doc.id }}')">👁️ Visualizar</button>
+                                    <a href="{{ doc.arquivo_url }}" class="btn-download" download>📥 Download</a>
+                                {% else %}
+                                    <span class="btn-download disabled">📄 Sem arquivo</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="resultado-vazio">
+                    <h3>❌ Nenhum documento encontrado</h3>
+                    <p>Tente pesquisar com outro nome.</p>
+                </div>
+            {% endif %}
+        {% else %}
+            <div class="resultado-vazio">
+                <h3>🔍 Digite o nome do funcionário acima</h3>
+                <p>Será exibido todos os documentos/atestados desse funcionário.</p>
+            </div>
+        {% endif %}
+
     </div>
 
 </div>
 
-<!-- CHART -->
+<!-- MODAL DE PREVIEW -->
+<div id="modal-preview" class="modal-overlay" onclick="fecharPreview(event)">
+    <div class="modal-content">
+        <div class="modal-header">
+            <span id="modal-titulo" class="modal-titulo"></span>
+            <div class="modal-acoes">
+                <a id="modal-download-btn" href="#" download class="modal-btn-download">📥 Download</a>
+                <button class="modal-fechar" onclick="fecharModal()">✕ Fechar</button>
+            </div>
+        </div>
+        <div class="modal-body" id="modal-body">
+            <!-- Conteúdo dinâmico -->
+        </div>
+    </div>
+</div>
 <script>
+function abrirPreview(url, nome, id) {
+    const modal = document.getElementById('modal-preview');
+    const body = document.getElementById('modal-body');
+    const titulo = document.getElementById('modal-titulo');
+    const downloadBtn = document.getElementById('modal-download-btn');
+
+    titulo.textContent = nome;
+    downloadBtn.href = url;
+
+    // Detectar tipo de arquivo pela extensão
+    const ext = nome.split('.').pop().toLowerCase();
+    const imagens = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp', 'svg'];
+    const pdfs = ['pdf'];
+
+    body.innerHTML = '';
+
+    if (pdfs.includes(ext)) {
+        body.innerHTML = `<iframe src="${url}" class="preview-iframe" title="Preview do documento"></iframe>`;
+    } else if (imagens.includes(ext)) {
+        body.innerHTML = `<div class="preview-img-wrap"><img src="${url}" class="preview-img" alt="Preview ${nome}"></div>`;
+    } else {
+        body.innerHTML = `
+            <div class="preview-unsupported">
+                <div style="font-size:64px; margin-bottom:20px;">📄</div>
+                <h3>${nome}</h3>
+                <p>Este tipo de arquivo (<strong>.${ext}</strong>) não pode ser visualizado diretamente no navegador.</p>
+                <a href="${url}" download class="modal-btn-download" style="margin-top:20px; display:inline-block;">📥 Clique para baixar</a>
+            </div>`;
+    }
+
+    modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+}
+
+function fecharModal() {
+    document.getElementById('modal-preview').style.display = 'none';
+    document.getElementById('modal-body').innerHTML = '';
+    document.body.style.overflow = '';
+}
+
+function fecharPreview(event) {
+    if (event.target === document.getElementById('modal-preview')) {
+        fecharModal();
+    }
+}
+
+// Fechar com ESC
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') fecharModal();
+});
+
+function mostrarAba(aba) {
+    // Esconder todas as abas
+    document.getElementById('aba-dashboard').classList.add('hidden');
+    document.getElementById('aba-busca').classList.add('hidden');
+
+    // Mostrar a aba selecionada
+    document.getElementById('aba-' + aba).classList.remove('hidden');
+
+    // Atualizar botões de abas
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    event.target.classList.add('active');
+}
+
 const ctx = document.getElementById('grafico');
 const labels = JSON.parse('{{ labels_json|escapejs }}');
 const values = JSON.parse('{{ values_json|escapejs }}');
 
-new Chart(ctx, {
-    type: 'bar',
-    data: {
-        labels: labels,
-        datasets: [{
-            label: 'Documentos',
-            data: values,
-            backgroundColor: '#1a5fb4',
-            borderRadius: 6
-        }]
-    },
-    options: {
-        responsive: true,
-        plugins: {
-            legend: { display: false }
+if (labels.length > 0) {
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Documentos',
+                data: values,
+                backgroundColor: '#1a5fb4',
+                borderRadius: 6
+            }]
         },
-        scales: {
-            y: { beginAtZero: true }
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { display: false }
+            },
+            scales: {
+                y: { beginAtZero: true }
+            }
         }
-    }
-});
+    });
+}
 </script>
 
 </body>

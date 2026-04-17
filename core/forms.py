@@ -18,6 +18,7 @@ class AtestadoForm(forms.ModelForm):
             'classificacao',
             'medico',
             'crm_cro_cress',
+            'uf',
             'arquivo',
         ]
         labels = {
@@ -29,17 +30,26 @@ class AtestadoForm(forms.ModelForm):
             'data_fim': 'Data Fim',
             'hora_retorno': 'Hora Retorno',
             'classificacao': 'Classificação',
+            'uf': 'UF',
             'medico': 'Médico',
-            'crm_cro_cress': 'CRM / CRO / CRESS',
+            'crm_cro_cress': 'CRM / CRO / CRESS (apenas números)',
             'arquivo': 'Arquivo',
         }
         widgets = {
             'tipo': forms.Select(attrs={'class': 'campo-tipo'}),
+            'uf': forms.Select(attrs={'class': 'campo-tipo'}),
             'data_inicio': forms.DateInput(attrs={'type': 'date'}),
             'data_fim': forms.DateInput(attrs={'type': 'date'}),
             'hora_saida': forms.TimeInput(attrs={'type': 'time'}),
             'hora_retorno': forms.TimeInput(attrs={'type': 'time'}),
+            'crm_cro_cress': forms.TextInput(attrs={'inputmode': 'numeric', 'pattern': '[0-9]*', 'placeholder': 'Ex: 12345'}),
         }
+
+    def clean_crm_cro_cress(self):
+        valor = self.cleaned_data.get('crm_cro_cress', '')
+        if valor and not valor.isdigit():
+            raise forms.ValidationError('Este campo aceita apenas números.')
+        return valor
 
 
 class LoginForm(AuthenticationForm):
