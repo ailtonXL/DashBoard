@@ -127,3 +127,17 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = 'static/'
+
+# CSRF Configuration
+CSRF_TRUSTED_ORIGINS = [
+    "http://127.0.0.1:8000",
+    "http://localhost:8000",
+    "http://localhost",
+    "http://127.0.0.1",
+    "https://dashboard-vwob.onrender.com",
+]
+SESSION_COOKIE_NAME = 'dashboard_sessionid'
+CSRF_COOKIE_NAME = 'dashboard_csrftoken'
+CSRF_COOKIE_SECURE = not DEBUG
+CSRF_COOKIE_HTTPONLY = False  # Keep False so forms can submit CSRF token normally.
+CSRF_USE_SESSIONS = False

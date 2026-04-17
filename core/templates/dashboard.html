@@ -7,6 +7,98 @@
     <title>Dashboard</title>
 
     <link rel="stylesheet" href="{% static 'main/dashboard.css' %}">
+    <style>
+        .user-info {
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            color: #fff;
+        }
+
+        .user-info p {
+            margin: 5px 0;
+        }
+
+        .logout-btn {
+            display: block;
+            width: 82%;
+            padding: 8px 10px;
+            background: #e74c3c;
+            color: white;
+            border-radius: 6px;
+            text-align: center;
+            text-decoration: none;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            margin-left: auto;
+            margin-right: auto;
+            margin-top: auto;
+        }
+
+        .logout-btn:hover {
+            background: #c0392b;
+        }
+
+        .submenu {
+            margin-left: 15px;
+            margin-top: 10px;
+            border-left: 2px solid #1a5fb4;
+            padding-left: 10px;
+        }
+
+        .submenu a {
+            display: block;
+            padding: 8px 0;
+            font-size: 14px;
+            color: #ddd;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .submenu a:hover {
+            color: #fff;
+        }
+
+        .menu-toggle {
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px;
+        }
+
+        .menu-toggle::after {
+            content: '▼';
+            font-size: 10px;
+            transition: transform 0.3s;
+        }
+
+        .menu-toggle.open::after {
+            transform: rotate(180deg);
+        }
+
+        .submenu {
+            display: none;
+        }
+
+        .submenu.show {
+            display: block;
+        }
+
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        .menu {
+            flex: 1;
+            overflow-y: auto;
+        }
+    </style>
 </head>
 
 <body>
@@ -14,23 +106,68 @@
     <div class="sidebar">
 
         <div class="logo">
-             <img src="{% static 'assets/LogoCamaleao.svg' %}" alt="Logo">
+               <img src="{% static 'assets/LogoCamaleao.svg' %}" alt="Logo Camaleao">
+        </div>
+
+        <div class="user-info">
+            <p><strong>Usuário:</strong> {{ user.username }}</p>
+            {% if user.role_profile %}
+                <p><strong>Departamento:</strong> {{ user.role_profile.get_role_display }}</p>
+                {% if user.role_profile.is_gerencia %}
+                    <p style="color: #1a5fb4;"><strong>👑 Gerência - Acesso Total</strong></p>
+                {% endif %}
+            {% endif %}
         </div>
 
         <ul class="menu">
 
-            <li><a href="{% url 'administracao' %}">Administração</a></li>
-            <li><a href="{% url 'gerencia' %}">Gerência</a></li>
-            <li><a href="{% url 'logistica' %}">Logística</a></li>
-            <li><a href="{% url 'manutencao' %}">Manutenção</a></li>
-            <li><a href="{% url 'meio_ambiente' %}">Meio Ambiente</a></li>
+            {% if user.role_profile.is_gerencia or user.role_profile.role == 'admin' %}
+                <li>
+                    <div class="menu-toggle" onclick="toggleSubmenu('admin-submenu', this)">
+                        🏢 Administração
+                    </div>
+                    <div class="submenu" id="admin-submenu">
+                        <a href="{% url 'documentos' %}">📋 Documentos</a>
+                        <a href="{% url 'contratos' %}">📄 Contratos</a>
+                    </div>
+                </li>
+            {% endif %}
 
-            <li><a href="{% url 'operacoes' %}">Operações</a></li>
-            <li><a href="{% url 'qualidade_processos' %}">Qualidade e Processos</a></li>
-            <li><a href="{% url 'saude_seguranca' %}">Saúde e Segurança do Trabalho</a></li>
-            <li><a href="{% url 'suprimentos' %}">Suprimentos</a></li>
+            {% if user.role_profile.is_gerencia or user.role_profile.role == 'gerencia' %}
+                <li><a href="{% url 'gerencia' %}">👔 Gerência</a></li>
+            {% endif %}
+
+            {% if user.role_profile.is_gerencia or user.role_profile.role == 'logistica' %}
+                <li><a href="{% url 'logistica' %}">📦 Logística</a></li>
+            {% endif %}
+
+            {% if user.role_profile.is_gerencia or user.role_profile.role == 'manutencao' %}
+                <li><a href="{% url 'manutencao' %}">🔧 Manutenção</a></li>
+            {% endif %}
+
+            {% if user.role_profile.is_gerencia or user.role_profile.role == 'meio_ambiente' %}
+                <li><a href="{% url 'meio_ambiente' %}">🌿 Meio Ambiente</a></li>
+            {% endif %}
+
+            {% if user.role_profile.is_gerencia or user.role_profile.role == 'operacoes' %}
+                <li><a href="{% url 'operacoes' %}">⚙️ Operações</a></li>
+            {% endif %}
+
+            {% if user.role_profile.is_gerencia or user.role_profile.role == 'qualidade' %}
+                <li><a href="{% url 'qualidade_processos' %}">✓ Qualidade e Processos</a></li>
+            {% endif %}
+
+            {% if user.role_profile.is_gerencia or user.role_profile.role == 'saude' %}
+                <li><a href="{% url 'saude_seguranca' %}">🏥 Saúde e Segurança</a></li>
+            {% endif %}
+
+            {% if user.role_profile.is_gerencia or user.role_profile.role == 'suprimentos' %}
+                <li><a href="{% url 'suprimentos' %}">📫 Suprimentos</a></li>
+            {% endif %}
 
         </ul>
+
+        <a href="{% url 'logout' %}" class="logout-btn">🚪 Sair</a>
 
     </div>
 
@@ -43,29 +180,42 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <script>
+        function toggleSubmenu(id, element) {
+            const submenu = document.getElementById(id);
+            submenu.classList.toggle('show');
+            element.classList.toggle('open');
+        }
+
         const nomes = JSON.parse('{{ nomes_json|escapejs }}');
         const absenteismos = JSON.parse('{{ absenteismos_json|escapejs }}');
 
         const ctx = document.getElementById('absenteismoChart');
 
         new Chart(ctx, {
-            type: 'bar',
+            type: 'pie',
             data: {
                 labels: nomes,
                 datasets: [{
                     label: 'Absenteísmo (%)',
                     data: absenteismos,
-                    backgroundColor: 'rgba(54, 162, 235, 0.6)',
-                    borderColor: 'rgba(54, 162, 235, 1)',
+                    backgroundColor: [
+                        '#0a2f73',
+                        '#1a5fb4',
+                        '#2f7dd3',
+                        '#4e96e0',
+                        '#7fb5ee',
+                        '#a9cdf5',
+                        '#cfe3fa'
+                    ],
+                    borderColor: '#ffffff',
                     borderWidth: 1
                 }]
             },
             options: {
                 responsive: true,
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        max: 100
+                plugins: {
+                    legend: {
+                        position: 'bottom'
                     }
                 }
             }

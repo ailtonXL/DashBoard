@@ -6,7 +6,7 @@
 
 body {
     font-family: Arial, sans-serif;
-    background: #f4f6f9;
+    background: #f3f6fc;
 }
 
 /* NAVBAR */
@@ -14,14 +14,20 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background: #4a90e2;
+    background: #0d3d80;
     padding: 15px 30px;
     color: white;
 }
 
 .logo {
-    font-size: 20px;
-    font-weight: bold;
+    display: flex;
+    align-items: center;
+}
+
+.logo img {
+    height: 34px;
+    width: auto;
+    display: block;
 }
 
 .nav-links a {
@@ -37,7 +43,7 @@ body {
 }
 
 .btn-voltar {
-    background: #ddd;
+    background: #e6eefb;
     padding: 8px 12px;
     border-radius: 6px;
     text-decoration: none;
@@ -78,7 +84,7 @@ h1 {
 
 .numero {
     font-size: 32px;
-    color: #4a90e2;
+    color: #1a5fb4;
     margin-top: 10px;
 }
 

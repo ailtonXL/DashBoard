@@ -4,26 +4,27 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Cadastrar Atestado</title>
-    <link rel="stylesheet" href="{% static 'main/atestado.css' %}">
+    <title>Cadastrar Documento</title>
+    <link rel="stylesheet" href="{% static 'main/atestado.css' %}?v=3">
 </head>
 <body>
 
 <!-- NAVBAR -->
 <nav class="navbar">
     <div class="navbar-left">
-             <img src="{% static 'assets/LogoCamaleao.svg' %}" alt="Logo">
+             <img src="{% static 'assets/LogoCamaleao.svg' %}" alt="Logo Camaleao">
     </div>
 
     <div class="navbar-right">
-        <a href="/administracao/" class="btn-back">← Voltar</a>
+        <a href="{% url 'dashboard' %}" class="btn-back">← Dashboard</a>
+        <a href="{% url 'administracao' %}" class="btn-chart">📊 Ver Grafico</a>
     </div>
 </nav>
 
 <!-- CONTAINER -->
 <div class="container">
 
-    <h1>Cadastrar Atestado</h1>
+    <h1>Cadastrar Documento</h1>
 
     <form method="post" enctype="multipart/form-data">
         {% csrf_token %}
@@ -34,13 +35,57 @@
         </div>
 
         <div class="form-group">
+            <label>Empresa</label>
+            {{ form.empresa }}
+        </div>
+
+        <div class="form-group">
+            <label for="id_tipo">Tipo</label>
+            <div class="tipo-select-wrap">
+                <select name="tipo" id="id_tipo" class="campo-tipo" required>
+                    {% for value, label in form.tipo.field.choices %}
+                        <option value="{{ value }}" {% if form.tipo.value == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            {% if form.tipo.errors %}
+                <div class="error-message">{{ form.tipo.errors.0 }}</div>
+            {% endif %}
+        </div>
+
+        <div class="form-group">
             <label>Data início</label>
             {{ form.data_inicio }}
         </div>
 
         <div class="form-group">
+            <label>Hora Saída</label>
+            {{ form.hora_saida }}
+        </div>
+
+        <div class="form-group">
             <label>Data fim</label>
             {{ form.data_fim }}
+        </div>
+
+        <div class="form-group">
+            <label>Hora Retorno</label>
+            {{ form.hora_retorno }}
+        </div>
+
+        <div class="form-group">
+            <label>Classificação</label>
+            {{ form.classificacao }}
+        </div>
+
+        <div class="form-group">
+            <label>Médico</label>
+            {{ form.medico }}
+        </div>
+
+        <div class="form-group">
+            <label>CRM / CRO / CRESS</label>
+            {{ form.crm_cro_cress }}
         </div>
 
         <!-- DROPZONE -->
@@ -55,7 +100,7 @@
             {{ form.arquivo }}
         </div>
 
-        <button type="submit">Salvar</button>
+        <button type="submit">Salvar Documento</button>
     </form>
 
 </div>

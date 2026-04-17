@@ -13,11 +13,13 @@
 
 <!-- NAVBAR -->
 <div class="navbar">
-    <div class="logo">📊 Dashboard</div>
+    <div class="logo">
+        <img src="{% static 'assets/LogoCamaleao.svg' %}" alt="Logo Camaleao">
+    </div>
 
     <div class="nav-links">
         <a href="{% url 'dashboard' %}">Dashboard</a>
-        <a href="{% url 'atestados' %}">Atestados</a>
+        <a href="{% url 'documentos' %}">Documentos</a>
         <a href="{% url 'contratos' %}">Contratos</a>
     </div>
 </div>
@@ -36,7 +38,7 @@
     <div class="kpi-container">
 
         <div class="card">
-            <h2>Total de Atestados</h2>
+            <h2>Total de Documentos</h2>
             <p class="numero">{{ total_atestados }}</p>
         </div>
 
@@ -49,7 +51,7 @@
 
     <!-- GRÁFICO -->
     <div class="grafico-container">
-        <h2>Atestados</h2>
+        <h2>Documentos</h2>
         <canvas id="grafico"></canvas>
     </div>
 
@@ -58,15 +60,17 @@
 <!-- CHART -->
 <script>
 const ctx = document.getElementById('grafico');
+const labels = JSON.parse('{{ labels_json|escapejs }}');
+const values = JSON.parse('{{ values_json|escapejs }}');
 
 new Chart(ctx, {
     type: 'bar',
     data: {
-        labels: {{ labels|safe }},
+        labels: labels,
         datasets: [{
-            label: 'Atestados',
-            data: {{ values|safe }},
-            backgroundColor: '#4a90e2',
+            label: 'Documentos',
+            data: values,
+            backgroundColor: '#1a5fb4',
             borderRadius: 6
         }]
     },

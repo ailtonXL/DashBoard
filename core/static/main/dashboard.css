@@ -3,11 +3,18 @@ body {
     font-family: Arial, sans-serif;
 }
 
+:root {
+    --blue-900: #0a2f73;
+    --blue-800: #0d3d80;
+    --blue-700: #1a5fb4;
+    --blue-100: #eaf2ff;
+}
+
 /* SIDEBAR */
 .sidebar {
     width: 260px;
     height: 100vh;
-    background: #032877;
+    background: var(--blue-900);
     color: white;
     position: fixed;
     padding: 20px;
@@ -15,9 +22,15 @@ body {
 }
 
 .logo {
-    font-size: 22px;
-    font-weight: bold;
+    display: flex;
+    align-items: center;
     margin-bottom: 20px;
+}
+
+.logo img {
+    height: 34px;
+    width: auto;
+    display: block;
 }
 
 /* MENU */
@@ -34,7 +47,7 @@ body {
 }
 
 .menu li:hover {
-    background: #052a64;
+    background: var(--blue-800);
 }
 
 .menu a {
@@ -46,7 +59,7 @@ body {
 /* opcional: efeito ao passar o mouse */
 .menu a:hover {
     color: #ffffff;
-    background: #052a64;
+    background: var(--blue-800);
 }
 
 .submenu li {
@@ -62,7 +75,7 @@ body {
 }
 
 .admin-navbar {
-    background: #1f2a44;
+    background: var(--blue-800);
     padding: 12px 20px;
     display: flex;
     gap: 20px;

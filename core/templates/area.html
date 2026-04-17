@@ -1,0 +1,84 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ area_nome }} - Dashboard</title>
+    <link rel="stylesheet" href="{% static 'main/area.css' %}">
+</head>
+<body>
+
+<nav class="topbar">
+    <div class="topbar-brand">
+        <img src="{% static 'assets/LogoCamaleao.svg' %}" alt="Logo Camaleao">
+    </div>
+    <div class="topbar-links">
+        <a href="{% url 'dashboard' %}">Dashboard</a>
+        <a href="{% url 'documentos' %}">Documentos</a>
+        <a href="{% url 'administracao' %}">Administracao</a>
+    </div>
+</nav>
+
+<main class="page">
+    <header class="hero">
+        <div>
+            <h1>{{ area_nome }}</h1>
+            <p>{{ descricao }}</p>
+        </div>
+        <a href="{% url 'dashboard' %}" class="btn">Voltar ao Dashboard</a>
+    </header>
+
+    <section class="kpi-grid">
+        {% for item in indicadores %}
+            <article class="kpi-card">
+                <h2>{{ item.titulo }}</h2>
+                <p>{{ item.valor }}</p>
+            </article>
+        {% endfor %}
+    </section>
+
+    <section class="content-grid">
+        <article class="panel">
+            <h3>Prioridades da Area</h3>
+            <ul>
+                {% for prioridade in prioridades %}
+                    <li>{{ prioridade }}</li>
+                {% endfor %}
+            </ul>
+        </article>
+
+        <article class="panel">
+            <h3>Ultimos Documentos</h3>
+            {% if ultimos_documentos %}
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Nome</th>
+                                <th>Empresa</th>
+                                <th>Tipo</th>
+                                <th>Periodo</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for doc in ultimos_documentos %}
+                                <tr>
+                                    <td>{{ doc.nome }}</td>
+                                    <td>{{ doc.empresa }}</td>
+                                    <td>{{ doc.tipo }}</td>
+                                    <td>{{ doc.periodo }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <p class="empty">Nenhum documento cadastrado ate o momento.</p>
+            {% endif %}
+        </article>
+    </section>
+</main>
+
+</body>
+</html>
