@@ -15,6 +15,13 @@ from django.views.decorators.csrf import ensure_csrf_cookie
 from django.utils import timezone
 
 
+def get_user_profile(user):
+    try:
+        return user.role_profile
+    except UsuarioComRole.DoesNotExist:
+        return None
+
+
 @never_cache
 @ensure_csrf_cookie
 def login_view(request):
@@ -44,19 +51,20 @@ def check_permission(required_role):
         def wrapper(request, *args, **kwargs):
             if not request.user.is_authenticated:
                 return redirect('login')
-            
-            try:
-                user_role = request.user.role_profile
-                if user_role.precisa_alterar_senha:
-                    return redirect('alterar_senha_primeiro_acesso')
-                if user_role.is_gerencia or user_role.role == required_role:
-                    return view_func(request, *args, **kwargs)
-                else:
-                    messages.error(request, 'Você não tem permissão para acessar esta página.')
-                    return redirect('dashboard')
-            except UsuarioComRole.DoesNotExist:
+
+            user_role = get_user_profile(request.user)
+            if user_role is None:
                 messages.error(request, 'Perfil de usuário não configurado.')
                 return redirect('login')
+
+            if user_role.precisa_alterar_senha:
+                return redirect('alterar_senha_primeiro_acesso')
+
+            if user_role.is_gerencia or user_role.role == required_role:
+                return view_func(request, *args, **kwargs)
+
+            messages.error(request, 'Você não tem permissão para acessar esta página.')
+            return redirect('dashboard')
         
         return wrapper
     return decorator
@@ -110,7 +118,8 @@ def build_area_context(area_nome, descricao, prioridade_titulos):
 
 @login_required(login_url='login')
 def dashboard(request):
-    if request.user.role_profile.precisa_alterar_senha:
+    profile = get_user_profile(request.user)
+    if profile and profile.precisa_alterar_senha:
         return redirect('alterar_senha_primeiro_acesso')
 
     # Considerar apenas documentos processados
@@ -127,6 +136,7 @@ def dashboard(request):
     presenca_media = round(100 - absenteismo_medio, 2)
 
     return render(request, "dashboard.html", {
+        "profile": profile,
         "nomes_json": json.dumps(nomes),
         "absenteismos_json": json.dumps(absenteismos),
         "absenteismo_medio": absenteismo_medio,
@@ -138,7 +148,12 @@ def dashboard(request):
 @never_cache
 @ensure_csrf_cookie
 def alterar_senha_primeiro_acesso(request):
-    if not request.user.role_profile.precisa_alterar_senha:
+    role_profile = get_user_profile(request.user)
+    if role_profile is None:
+        messages.error(request, 'Perfil de usuário não configurado.')
+        return redirect('login')
+
+    if not role_profile.precisa_alterar_senha:
         return redirect('dashboard')
 
     if request.method == 'POST':
@@ -147,7 +162,6 @@ def alterar_senha_primeiro_acesso(request):
             user = form.save()
             update_session_auth_hash(request, user)
 
-            role_profile = request.user.role_profile
             role_profile.precisa_alterar_senha = False
             role_profile.save(update_fields=['precisa_alterar_senha'])
 
@@ -161,14 +175,14 @@ def alterar_senha_primeiro_acesso(request):
 
 @login_required(login_url='login')
 def administracao(request):
-    try:
-        user_role = request.user.role_profile
-        if not (user_role.is_gerencia or user_role.role in ['admin', 'saude']):
-            messages.error(request, 'Você não tem permissão para acessar esta página.')
-            return redirect('dashboard')
-    except UsuarioComRole.DoesNotExist:
+    user_role = get_user_profile(request.user)
+    if user_role is None:
         messages.error(request, 'Perfil de usuário não configurado.')
         return redirect('login')
+
+    if not (user_role.is_gerencia or user_role.role in ['admin', 'saude']):
+        messages.error(request, 'Você não tem permissão para acessar esta página.')
+        return redirect('dashboard')
 
     # Considerar apenas documentos processados
     atestados = Atestado.objects.filter(processado=True).order_by('-absenteismo')
@@ -198,14 +212,14 @@ def administracao(request):
 @login_required(login_url='login')
 def buscar_documentos(request):
     """Buscar documentos por nome do funcionário e acessar arquivos."""
-    try:
-        user_role = request.user.role_profile
-        if not (user_role.is_gerencia or user_role.role in ['admin', 'saude']):
-            messages.error(request, 'Você não tem permissão para acessar esta página.')
-            return redirect('dashboard')
-    except UsuarioComRole.DoesNotExist:
+    user_role = get_user_profile(request.user)
+    if user_role is None:
         messages.error(request, 'Perfil de usuário não configurado.')
         return redirect('login')
+
+    if not (user_role.is_gerencia or user_role.role in ['admin', 'saude']):
+        messages.error(request, 'Você não tem permissão para acessar esta página.')
+        return redirect('dashboard')
 
     query = request.GET.get('q', '').strip()
     documentos = []

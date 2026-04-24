@@ -111,9 +111,9 @@
 
         <div class="user-info">
             <p><strong>Usuário:</strong> {{ user.username }}</p>
-            {% if user.role_profile %}
-                <p><strong>Departamento:</strong> {{ user.role_profile.get_role_display }}</p>
-                {% if user.role_profile.is_gerencia %}
+            {% if profile %}
+                <p><strong>Departamento:</strong> {{ profile.get_role_display }}</p>
+                {% if profile.is_gerencia %}
                     <p style="color: #1a5fb4;"><strong>👑 Gerência - Acesso Total</strong></p>
                 {% endif %}
             {% endif %}
@@ -121,7 +121,7 @@
 
         <ul class="menu">
 
-            {% if user.role_profile.is_gerencia or user.role_profile.role == 'admin' %}
+            {% if profile and (profile.is_gerencia or profile.role == 'admin') %}
                 <li>
                     <div class="menu-toggle" onclick="toggleSubmenu('admin-submenu', this)">
                         🏢 Administração
@@ -132,31 +132,31 @@
                 </li>
             {% endif %}
 
-            {% if user.role_profile.is_gerencia or user.role_profile.role == 'gerencia' %}
+            {% if profile and (profile.is_gerencia or profile.role == 'gerencia') %}
                 <li><a href="{% url 'gerencia' %}">👔 Gerência</a></li>
             {% endif %}
 
-            {% if user.role_profile.is_gerencia or user.role_profile.role == 'logistica' %}
+            {% if profile and (profile.is_gerencia or profile.role == 'logistica') %}
                 <li><a href="{% url 'logistica' %}">📦 Logística</a></li>
             {% endif %}
 
-            {% if user.role_profile.is_gerencia or user.role_profile.role == 'manutencao' %}
+            {% if profile and (profile.is_gerencia or profile.role == 'manutencao') %}
                 <li><a href="{% url 'manutencao' %}">🔧 Manutenção</a></li>
             {% endif %}
 
-            {% if user.role_profile.is_gerencia or user.role_profile.role == 'meio_ambiente' %}
+            {% if profile and (profile.is_gerencia or profile.role == 'meio_ambiente') %}
                 <li><a href="{% url 'meio_ambiente' %}">🌿 Meio Ambiente</a></li>
             {% endif %}
 
-            {% if user.role_profile.is_gerencia or user.role_profile.role == 'operacoes' %}
+            {% if profile and (profile.is_gerencia or profile.role == 'operacoes') %}
                 <li><a href="{% url 'operacoes' %}">⚙️ Operações</a></li>
             {% endif %}
 
-            {% if user.role_profile.is_gerencia or user.role_profile.role == 'qualidade' %}
+            {% if profile and (profile.is_gerencia or profile.role == 'qualidade') %}
                 <li><a href="{% url 'qualidade_processos' %}">✓ Qualidade e Processos</a></li>
             {% endif %}
 
-            {% if user.role_profile.is_gerencia or user.role_profile.role == 'saude' %}
+            {% if profile and (profile.is_gerencia or profile.role == 'saude') %}
                 <li>
                     <div class="menu-toggle" onclick="toggleSubmenu('saude-submenu', this)">
                         🏥 Saúde e Segurança
@@ -169,7 +169,7 @@
                 </li>
             {% endif %}
 
-            {% if user.role_profile.is_gerencia or user.role_profile.role == 'suprimentos' %}
+            {% if profile and (profile.is_gerencia or profile.role == 'suprimentos') %}
                 <li><a href="{% url 'suprimentos' %}">📫 Suprimentos</a></li>
             {% endif %}
 
