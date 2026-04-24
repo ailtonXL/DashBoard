@@ -33,6 +33,13 @@ body {
     font-weight: bold;
 }
 
+.navbar-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-right: 28px;
+}
+
 .btn-back {
     background: #1a5fb4;
     color: white;
@@ -41,7 +48,6 @@ body {
     text-decoration: none;
     font-size: 14px;
     transition: 0.2s;
-    margin-right: 70px;
 }
 
 .btn-chart {
@@ -52,8 +58,6 @@ body {
     text-decoration: none;
     font-size: 14px;
     transition: 0.2s;
-    margin-right: 70px;
-    margin-left: 10px;
 }
 
 .btn-chart:hover {
@@ -289,3 +293,106 @@ button:hover {
     color: #1a5fb4;
     text-align: center;
 }
+/* DARK MODE */
+body.dark-mode {
+    background: #121212;
+    color: #e0e0e0;
+}
+body.dark-mode .navbar {
+    background: #0a2040;
+}
+body.dark-mode .container {
+    background: #1e1e1e;
+    color: #e0e0e0;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+}
+body.dark-mode h1 {
+    color: #ffffff;
+}
+body.dark-mode h2, body.dark-mode h3 {
+    color: #7fb5ee;
+}
+body.dark-mode label {
+    color: #ccc;
+}
+body.dark-mode input,
+body.dark-mode select,
+body.dark-mode textarea {
+    background: #2a2a2a !important;
+    color: #ffffff !important;
+    border-color: #555 !important;
+}
+body.dark-mode select#id_tipo,
+body.dark-mode select.campo-tipo {
+    background: #2a2a2a !important;
+    color: #ffffff !important;
+    border-color: #5b8fd8 !important;
+}
+body.dark-mode select#id_tipo:focus,
+body.dark-mode select.campo-tipo:focus {
+    background: #303030 !important;
+    border-color: #7fb5ee !important;
+    box-shadow: 0 0 0 3px rgba(127, 181, 238, 0.2);
+}
+body.dark-mode select#id_tipo option,
+body.dark-mode select.campo-tipo option,
+body.dark-mode select option {
+    background: #1f1f1f;
+    color: #ffffff;
+}
+body.dark-mode .dropzone {
+    background: #222;
+    border-color: #5b8fd8;
+}
+body.dark-mode .dropzone:hover {
+    background: #2a2a2a;
+}
+body.dark-mode .dropzone.active {
+    background: #303030;
+    border-color: #7fb5ee;
+}
+body.dark-mode .dropzone p,
+body.dark-mode #file-name {
+    color: #f1f1f1;
+}
+body.dark-mode .upload-card,
+body.dark-mode .table-wrapper,
+body.dark-mode .filter-card,
+body.dark-mode table,
+body.dark-mode .modal-content {
+    background: #1e1e1e;
+    color: #e0e0e0;
+}
+body.dark-mode td, body.dark-mode p {
+    color: #ccc;
+}
+body.dark-mode th {
+    color: #aaa;
+    background: #2a2a2a;
+}
+body.dark-mode tr:nth-child(even) { background: #252525; }
+body.dark-mode tr:hover { background: #2e2e2e; }
+
+/* BOTÃO DARK/LIGHT */
+.theme-toggle-btn {
+    position: fixed;
+    top: 16px;
+    right: 20px;
+    background: #1a5fb4;
+    color: white;
+    border: none;
+    border-radius: 50px;
+    padding: 6px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    transition: background 0.3s;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+.theme-toggle-btn:hover { background: #0d3d80; }
+body.dark-mode .theme-toggle-btn { background: #333; }
+body.dark-mode .theme-toggle-btn:hover { background: #444; }

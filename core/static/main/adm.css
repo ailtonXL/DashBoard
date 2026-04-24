@@ -33,8 +33,14 @@ body {
 .nav-links a {
     color: white;
     text-decoration: none;
-    margin-left: 20px;
     font-weight: bold;
+}
+
+.nav-links {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-right: 28px;
 }
 
 /* VOLTAR */
@@ -486,3 +492,90 @@ h1 {
     color: #555;
     min-height: 300px;
 }
+/* DARK MODE */
+body.dark-mode {
+    background: #121212;
+    color: #e0e0e0;
+}
+body.dark-mode .card,
+body.dark-mode .modal-content,
+body.dark-mode table {
+    background: #1e1e1e;
+    color: #e0e0e0;
+}
+body.dark-mode .grafico-container,
+body.dark-mode .busca-container,
+body.dark-mode .resultado-vazio,
+body.dark-mode .documento-card {
+    background: #1e1e1e;
+    color: #e0e0e0;
+    border-color: #3a3a3a;
+}
+body.dark-mode .doc-header {
+    border-bottom-color: #3a3a3a;
+}
+body.dark-mode .info-label,
+body.dark-mode .doc-data,
+body.dark-mode .preview-unsupported {
+    color: #b8b8b8;
+}
+body.dark-mode .info-value,
+body.dark-mode .doc-header h3,
+body.dark-mode .resultado-vazio h3 {
+    color: #7fb5ee;
+}
+body.dark-mode .modal-body {
+    background: #161616;
+}
+body.dark-mode .card h2,
+body.dark-mode th {
+    color: #7fb5ee;
+}
+body.dark-mode td {
+    color: #ccc;
+}
+body.dark-mode .tab-btn {
+    color: #aaa;
+    background: #2a2a2a;
+}
+body.dark-mode .tab-btn.active {
+    color: #7fb5ee;
+    border-bottom-color: #7fb5ee;
+}
+body.dark-mode input,
+body.dark-mode select,
+body.dark-mode textarea {
+    background: #2a2a2a;
+    color: #e0e0e0;
+    border-color: #444;
+}
+body.dark-mode tr:nth-child(even) {
+    background: #252525;
+}
+body.dark-mode tr:hover {
+    background: #2e2e2e;
+}
+
+/* BOTÃO DARK/LIGHT */
+.theme-toggle-btn {
+    position: fixed;
+    top: 72px;
+    right: 20px;
+    background: #1a5fb4;
+    color: white;
+    border: none;
+    border-radius: 50px;
+    padding: 6px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    transition: background 0.3s;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+.theme-toggle-btn:hover { background: #0d3d80; }
+body.dark-mode .theme-toggle-btn { background: #333; }
+body.dark-mode .theme-toggle-btn:hover { background: #444; }

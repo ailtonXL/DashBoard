@@ -4,3 +4,4 @@ djangorestframework
 crispy-bootstrap5
 whitenoise
 psycopg2-binary
+cryptography

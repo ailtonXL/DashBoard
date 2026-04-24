@@ -111,6 +111,62 @@ body {
     color: #333;
 }
 
+/* DARK MODE */
+body.dark-mode {
+    background: #121212;
+    color: #e0e0e0;
+}
+
+body.dark-mode .content h1 {
+    color: #e0e0e0;
+}
+
+body.dark-mode .chart-card {
+    background: #1e1e1e;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+}
+
+body.dark-mode .chart-titulo {
+    color: #7fb5ee;
+}
+
+body.dark-mode .legenda-item {
+    color: #ccc;
+}
+
+/* BOTÃO DARK/LIGHT */
+.theme-toggle-btn {
+    position: fixed;
+    top: 16px;
+    right: 20px;
+    background: var(--blue-700);
+    color: white;
+    border: none;
+    border-radius: 50px;
+    padding: 6px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    transition: background 0.3s;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+
+.theme-toggle-btn:hover {
+    background: var(--blue-800);
+}
+
+body.dark-mode .theme-toggle-btn {
+    background: #333;
+}
+
+body.dark-mode .theme-toggle-btn:hover {
+    background: #444;
+}
+
 @media (max-width: 900px) {
     .charts-grid {
         grid-template-columns: 1fr;

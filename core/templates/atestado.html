@@ -5,7 +5,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Cadastrar Documento</title>
-    <link rel="stylesheet" href="{% static 'main/atestado.css' %}?v=3">
+    <link rel="stylesheet" href="{% static 'main/atestado.css' %}?v=6">
 </head>
 <body>
 
@@ -276,5 +276,12 @@ function updateName() {
 }
 </script>
 
+<script>
+    (function() {
+        if (localStorage.getItem('theme') === 'dark') {
+            document.body.classList.add('dark-mode');
+        }
+    })();
+</script>
 </body>
 </html>

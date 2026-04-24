@@ -1,10 +1,12 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.forms import SetPasswordForm
 from django.contrib import messages
-from .forms import AtestadoForm, LoginForm
-from .models import Atestado, UsuarioComRole
-from django.db.models import Avg, Sum
+from .forms import AtestadoForm, HorimetroRegistroForm, LoginForm
+from .models import Atestado, HorimetroRegistro, UsuarioComRole
+from django.db.models import Avg, Sum, Q
 from django.db import models
 import json
 from functools import wraps
@@ -45,6 +47,8 @@ def check_permission(required_role):
             
             try:
                 user_role = request.user.role_profile
+                if user_role.precisa_alterar_senha:
+                    return redirect('alterar_senha_primeiro_acesso')
                 if user_role.is_gerencia or user_role.role == required_role:
                     return view_func(request, *args, **kwargs)
                 else:
@@ -106,6 +110,9 @@ def build_area_context(area_nome, descricao, prioridade_titulos):
 
 @login_required(login_url='login')
 def dashboard(request):
+    if request.user.role_profile.precisa_alterar_senha:
+        return redirect('alterar_senha_primeiro_acesso')
+
     # Considerar apenas documentos processados
     atestados = Atestado.objects.filter(processado=True).order_by('-absenteismo')
 
@@ -128,8 +135,41 @@ def dashboard(request):
 
 
 @login_required(login_url='login')
-@check_permission('admin')
+@never_cache
+@ensure_csrf_cookie
+def alterar_senha_primeiro_acesso(request):
+    if not request.user.role_profile.precisa_alterar_senha:
+        return redirect('dashboard')
+
+    if request.method == 'POST':
+        form = SetPasswordForm(user=request.user, data=request.POST)
+        if form.is_valid():
+            user = form.save()
+            update_session_auth_hash(request, user)
+
+            role_profile = request.user.role_profile
+            role_profile.precisa_alterar_senha = False
+            role_profile.save(update_fields=['precisa_alterar_senha'])
+
+            messages.success(request, 'Senha alterada com sucesso.')
+            return redirect('dashboard')
+    else:
+        form = SetPasswordForm(user=request.user)
+
+    return render(request, 'alterar_senha_primeiro_acesso.html', {'form': form})
+
+
+@login_required(login_url='login')
 def administracao(request):
+    try:
+        user_role = request.user.role_profile
+        if not (user_role.is_gerencia or user_role.role in ['admin', 'saude']):
+            messages.error(request, 'Você não tem permissão para acessar esta página.')
+            return redirect('dashboard')
+    except UsuarioComRole.DoesNotExist:
+        messages.error(request, 'Perfil de usuário não configurado.')
+        return redirect('login')
+
     # Considerar apenas documentos processados
     atestados = Atestado.objects.filter(processado=True).order_by('-absenteismo')
 
@@ -156,18 +196,25 @@ def administracao(request):
 
 
 @login_required(login_url='login')
-@check_permission('admin')
 def buscar_documentos(request):
     """Buscar documentos por nome do funcionário e acessar arquivos."""
+    try:
+        user_role = request.user.role_profile
+        if not (user_role.is_gerencia or user_role.role in ['admin', 'saude']):
+            messages.error(request, 'Você não tem permissão para acessar esta página.')
+            return redirect('dashboard')
+    except UsuarioComRole.DoesNotExist:
+        messages.error(request, 'Perfil de usuário não configurado.')
+        return redirect('login')
+
     query = request.GET.get('q', '').strip()
     documentos = []
     
     if query:
-        # Buscar documentos que contenham o nome pesquisado
-        documentos = Atestado.objects.filter(
-            nome__icontains=query,
-            processado=True
-        ).order_by('-created_at')
+        # Como o nome está criptografado no banco, filtramos em memória após descriptografar.
+        base_qs = Atestado.objects.filter(processado=True).order_by('-created_at')
+        query_lower = query.lower()
+        documentos = [doc for doc in base_qs if query_lower in (doc.nome or '').lower()]
     
     # Preparar dados para exibição
     docs_com_arquivo = []
@@ -321,9 +368,7 @@ def qualidade_processos(request):
     return render(request, "area.html", context)
 
 
-@login_required(login_url='login')
-@check_permission('saude')
-def saude_seguranca(request):
+def build_sst_context():
     context = build_area_context(
         'Saude e Seguranca',
         'Gestao preventiva de riscos e conformidade de seguranca do trabalho.',
@@ -333,11 +378,69 @@ def saude_seguranca(request):
             'Registrar DDS semanal',
         ],
     )
-    return render(request, "area.html", context)
+    context.update({
+        'total_registros_horimetro': HorimetroRegistro.objects.count(),
+    })
+    return context
 
 
 @login_required(login_url='login')
-@check_permission('suprimentos')
+@check_permission('saude')
+def saude_seguranca(request):
+    context = build_sst_context()
+
+    if request.method == 'POST':
+        horimetro_form = HorimetroRegistroForm(request.POST)
+        if horimetro_form.is_valid():
+            horimetro_form.save()
+            messages.success(request, 'Registro de horimetro salvo com sucesso.')
+            return redirect('saude_seguranca')
+    else:
+        horimetro_form = HorimetroRegistroForm()
+
+    registros = HorimetroRegistro.objects.all()
+    filtro_tipo = request.GET.get('tipo', '').strip()
+    filtro_nome = request.GET.get('nome', '').strip()
+    filtro_veiculo = request.GET.get('veiculo', '').strip()
+    filtro_placa = request.GET.get('placa', '').strip().upper().replace('-', '').replace(' ', '')
+    filtro_data = request.GET.get('data', '').strip()
+
+    # Compatibilidade com filtro legado "veiculo" e novo filtro unificado "nome".
+    termo_nome = filtro_nome or filtro_veiculo
+
+    if filtro_tipo in ['veiculo', 'maquina']:
+        registros = registros.filter(tipo_registro=filtro_tipo)
+
+    if termo_nome:
+        if filtro_tipo == 'veiculo':
+            registros = registros.filter(veiculo__icontains=termo_nome)
+        elif filtro_tipo == 'maquina':
+            registros = registros.filter(maquinario__icontains=termo_nome)
+        else:
+            registros = registros.filter(Q(veiculo__icontains=termo_nome) | Q(maquinario__icontains=termo_nome))
+    if filtro_placa:
+        registros = registros.filter(placa__icontains=filtro_placa)
+    if filtro_data:
+        registros = registros.filter(data_registro=filtro_data)
+
+    context.update({
+        'horimetro_form': horimetro_form,
+        'horimetro_registros': registros[:20],
+        'total_registros_horimetro': registros.count(),
+        'filtros_horimetro': {
+            'tipo': filtro_tipo,
+            'nome': termo_nome,
+            'veiculo': filtro_veiculo,
+            'placa': request.GET.get('placa', '').strip(),
+            'data': filtro_data,
+        },
+    })
+
+    return render(request, "horimetro.html", context)
+
+
+@login_required(login_url='login')
+@check_permission('saude')
 def suprimentos(request):
     context = build_area_context(
         'Suprimentos',

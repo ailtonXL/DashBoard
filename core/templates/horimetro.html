@@ -1,0 +1,266 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ area_nome }} - Painel de Horimetro</title>
+    <link rel="stylesheet" href="{% static 'main/area.css' %}?v=5">
+    <link rel="stylesheet" href="{% static 'main/horimetro.css' %}?v=5">
+</head>
+<body>
+
+<nav class="topbar">
+    <div class="topbar-brand">
+        <a href="{% url 'dashboard' %}"><img src="{% static 'assets/LogoCamaleao.svg' %}" alt="Logo Camaleao"></a>
+    </div>
+    <div class="topbar-links">
+        <a href="{% url 'dashboard' %}">Dashboard</a>
+        <a href="{% url 'documentos' %}">Documentos</a>
+        <a href="{% url 'administracao' %}">Administracao</a>
+    </div>
+</nav>
+
+<main class="page">
+    <header class="hero">
+        <div>
+            <h1>{{ area_nome }}</h1>
+            <p>{{ descricao }}</p>
+        </div>
+        <a href="{% url 'dashboard' %}" class="btn">Voltar ao Dashboard</a>
+    </header>
+
+    {% if messages %}
+        <section class="message-stack">
+            {% for message in messages %}
+                <div class="message {% if message.tags %}{{ message.tags }}{% endif %}">{{ message }}</div>
+            {% endfor %}
+        </section>
+    {% endif %}
+
+    <section class="module-shell">
+        <div class="module-head">
+            <div>
+                <h2 id="painel-horimetro">Painel de Horimetro</h2>
+                <p>Cadastro e consulta reunidos em uma unica pagina.</p>
+            </div>
+            <span class="module-badge">{{ total_registros_horimetro }} registro{{ total_registros_horimetro|pluralize }}</span>
+        </div>
+
+        <div class="module-content">
+            <article class="form-card" id="registro-horimetro">
+                <h3 class="section-title">Registro de Horimetro</h3>
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="form-grid">
+                        <div class="field field-full">
+                            <label for="{{ horimetro_form.tipo_registro.id_for_label }}">Tipo</label>
+                            {{ horimetro_form.tipo_registro }}
+                            {% for error in horimetro_form.tipo_registro.errors %}
+                                <p class="field-error">{{ error }}</p>
+                            {% endfor %}
+                        </div>
+
+                        <div class="field field-full" data-registro-group="veiculo">
+                            <label for="{{ horimetro_form.veiculo.id_for_label }}">Veiculo</label>
+                            {{ horimetro_form.veiculo }}
+                            {% for error in horimetro_form.veiculo.errors %}
+                                <p class="field-error">{{ error }}</p>
+                            {% endfor %}
+                        </div>
+
+                        <div class="field field-full">
+                            <label for="{{ horimetro_form.data_registro.id_for_label }}">Data</label>
+                            {{ horimetro_form.data_registro }}
+                            {% for error in horimetro_form.data_registro.errors %}
+                                <p class="field-error">{{ error }}</p>
+                            {% endfor %}
+                        </div>
+
+                        <div class="field" data-registro-group="veiculo">
+                            <label for="{{ horimetro_form.placa.id_for_label }}">Placa</label>
+                            {{ horimetro_form.placa }}
+                            {% for error in horimetro_form.placa.errors %}
+                                <p class="field-error">{{ error }}</p>
+                            {% endfor %}
+                        </div>
+
+                        <div class="field field-full" data-registro-group="maquina">
+                            <label for="{{ horimetro_form.maquinario.id_for_label }}">Nome do maquinario</label>
+                            {{ horimetro_form.maquinario }}
+                            {% for error in horimetro_form.maquinario.errors %}
+                                <p class="field-error">{{ error }}</p>
+                            {% endfor %}
+                        </div>
+
+                        <div class="field field-full" data-registro-group="veiculo">
+                            <label for="{{ horimetro_form.quilometragem.id_for_label }}">Quilometragem</label>
+                            {{ horimetro_form.quilometragem }}
+                            {% for error in horimetro_form.quilometragem.errors %}
+                                <p class="field-error">{{ error }}</p>
+                            {% endfor %}
+                        </div>
+
+                        <div class="field field-full" data-registro-group="maquina">
+                            <label for="{{ horimetro_form.horimetro.id_for_label }}">Horimetro</label>
+                            {{ horimetro_form.horimetro }}
+                            {% for error in horimetro_form.horimetro.errors %}
+                                <p class="field-error">{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    {% for error in horimetro_form.non_field_errors %}
+                        <p class="field-error">{{ error }}</p>
+                    {% endfor %}
+
+                    <div class="helper-grid">
+                        <article class="helper-card">
+                            <strong>Tipo de registro</strong>
+                            <p>Selecione Veiculo ou Maquina para liberar somente os campos necessarios.</p>
+                        </article>
+                        <article class="helper-card">
+                            <strong>Veiculo</strong>
+                            <p>Para veiculos, informe nome, placa, data e quilometragem.</p>
+                        </article>
+                        <article class="helper-card">
+                            <strong>Maquina</strong>
+                            <p>Para maquinas, informe nome do maquinario, data e horimetro.</p>
+                        </article>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit">Salvar leitura</button>
+                    </div>
+                </form>
+            </article>
+
+            <article class="consulta-card">
+                <h3 class="section-title">Consulta de Registros</h3>
+
+                <form method="get" class="filter-form">
+                    <div class="field">
+                        <label for="filtro-tipo">Tipo</label>
+                        <select id="filtro-tipo" name="tipo">
+                            <option value="" {% if not filtros_horimetro.tipo %}selected{% endif %}>Todos</option>
+                            <option value="veiculo" {% if filtros_horimetro.tipo == 'veiculo' %}selected{% endif %}>Veiculo</option>
+                            <option value="maquina" {% if filtros_horimetro.tipo == 'maquina' %}selected{% endif %}>Maquina</option>
+                        </select>
+                    </div>
+                    <div class="field">
+                        <label for="filtro-nome">Nome</label>
+                        <input id="filtro-nome" name="nome" type="text" value="{{ filtros_horimetro.nome }}" placeholder="Buscar por veiculo ou maquinario">
+                    </div>
+                    <div class="field" data-filtro-group="veiculo">
+                        <label for="filtro-placa">Placa</label>
+                        <input id="filtro-placa" name="placa" type="text" value="{{ filtros_horimetro.placa }}" placeholder="ABC1D23">
+                    </div>
+                    <div class="field">
+                        <label for="filtro-data">Data</label>
+                        <input id="filtro-data" name="data" type="date" value="{{ filtros_horimetro.data }}">
+                    </div>
+                    <div class="filter-actions">
+                        <button type="submit">Consultar</button>
+                        <a href="{% url 'saude_seguranca' %}" class="btn-secondary">Limpar</a>
+                    </div>
+                </form>
+
+                <div class="table-card">
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Tipo</th>
+                                    <th>Ativo</th>
+                                    <th>Placa</th>
+                                    <th>Data</th>
+                                    <th>Medicao</th>
+                                    <th>Unidade</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for registro in horimetro_registros %}
+                                    <tr>
+                                        <td>{{ registro.get_tipo_registro_display }}</td>
+                                        <td>{% if registro.tipo_registro == 'maquina' %}{{ registro.maquinario }}{% else %}{{ registro.veiculo }}{% endif %}</td>
+                                        <td>{% if registro.tipo_registro == 'maquina' %}--{% else %}{{ registro.placa }}{% endif %}</td>
+                                        <td>{{ registro.data_registro|date:"d/m/Y" }}</td>
+                                        <td>{% if registro.tipo_registro == 'maquina' %}{{ registro.horimetro }}{% else %}{{ registro.quilometragem }}{% endif %}</td>
+                                        <td>{% if registro.tipo_registro == 'maquina' %}h{% else %}km{% endif %}</td>
+                                    </tr>
+                                {% empty %}
+                                    <tr>
+                                        <td colspan="6">Nenhum registro encontrado para os filtros informados.</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </article>
+        </div>
+    </section>
+</main>
+
+<script>
+    (function () {
+        const tipoRegistro = document.getElementById("{{ horimetro_form.tipo_registro.id_for_label }}");
+        const filtroTipo = document.getElementById('filtro-tipo');
+
+        function toggleByTipo(containerSelector, tipoValue, requiredMap) {
+            const groups = document.querySelectorAll(containerSelector);
+            groups.forEach((group) => {
+                const groupType = group.getAttribute(containerSelector.includes('registro') ? 'data-registro-group' : 'data-filtro-group');
+                const shouldShow = tipoValue !== 'maquina' && tipoValue !== 'veiculo' ? true : groupType === tipoValue;
+                group.classList.toggle('is-hidden', !shouldShow);
+            });
+
+            if (requiredMap) {
+                Object.entries(requiredMap).forEach(([id, shouldRequire]) => {
+                    const field = document.getElementById(id);
+                    if (field) {
+                        field.required = shouldRequire;
+                    }
+                });
+            }
+        }
+
+        function syncRegistro() {
+            if (!tipoRegistro) return;
+            const tipo = tipoRegistro.value;
+            toggleByTipo('[data-registro-group]', tipo, {
+                '{{ horimetro_form.veiculo.id_for_label }}': tipo === 'veiculo',
+                '{{ horimetro_form.placa.id_for_label }}': tipo === 'veiculo',
+                '{{ horimetro_form.quilometragem.id_for_label }}': tipo === 'veiculo',
+                '{{ horimetro_form.maquinario.id_for_label }}': tipo === 'maquina',
+                '{{ horimetro_form.horimetro.id_for_label }}': tipo === 'maquina'
+            });
+        }
+
+        function syncFiltro() {
+            if (!filtroTipo) return;
+            const tipo = filtroTipo.value;
+            toggleByTipo('[data-filtro-group]', tipo);
+        }
+
+        if (tipoRegistro) {
+            tipoRegistro.addEventListener('change', syncRegistro);
+            syncRegistro();
+        }
+
+        if (filtroTipo) {
+            filtroTipo.addEventListener('change', syncFiltro);
+            syncFiltro();
+        }
+    })();
+</script>
+
+<script>
+    (function() {
+        if (localStorage.getItem('theme') === 'dark') {
+            document.body.classList.add('dark-mode');
+        }
+    })();
+</script>
+</body>
+</html>

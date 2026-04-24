@@ -1,0 +1,167 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Primeiro Acesso - Alterar Senha</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #0a2f73 0%, #1a5fb4 100%);
+        }
+
+        .card {
+            width: min(92vw, 460px);
+            background: #ffffff;
+            border-radius: 14px;
+            padding: 28px;
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.22);
+        }
+
+        h1 {
+            margin: 0 0 8px;
+            color: #0a2f73;
+            font-size: 24px;
+        }
+
+        p {
+            margin: 0 0 20px;
+            color: #4b5563;
+            font-size: 14px;
+        }
+
+        .field {
+            margin-bottom: 14px;
+        }
+
+        .field label {
+            display: block;
+            font-size: 13px;
+            font-weight: 700;
+            color: #1f2937;
+            margin-bottom: 6px;
+        }
+
+        .field input {
+            width: 100%;
+            box-sizing: border-box;
+            border: 1px solid #cfd8e3;
+            border-radius: 9px;
+            padding: 11px 12px;
+            font-size: 14px;
+        }
+
+        .field input:focus {
+            outline: none;
+            border-color: #1a5fb4;
+            box-shadow: 0 0 0 3px rgba(26, 95, 180, 0.15);
+        }
+
+        .errors {
+            margin: 8px 0 14px;
+            background: #fff1f2;
+            border: 1px solid #fecdd3;
+            border-radius: 8px;
+            padding: 10px 12px;
+            color: #9f1239;
+            font-size: 13px;
+        }
+
+        .caps-warning {
+            margin-top: 8px;
+            background: #fff7e6;
+            color: #92400e;
+            border: 1px solid #fcd34d;
+            border-radius: 8px;
+            padding: 8px 10px;
+            font-size: 13px;
+            display: none;
+        }
+
+        button {
+            width: 100%;
+            border: none;
+            border-radius: 10px;
+            background: #1a5fb4;
+            color: #fff;
+            font-size: 15px;
+            font-weight: 700;
+            padding: 12px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #114a96;
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>Altere Sua Senha</h1>
+        <p>No primeiro acesso, a alteração de senha é obrigatória para continuar.</p>
+
+        <form method="post">
+            {% csrf_token %}
+
+            {% if form.non_field_errors %}
+                <div class="errors">{{ form.non_field_errors }}</div>
+            {% endif %}
+
+            <div class="field">
+                <label for="id_new_password1">Nova senha</label>
+                {{ form.new_password1 }}
+                <div id="caps-warning-senha1" class="caps-warning">Caps Lock está ativado.</div>
+                {% if form.new_password1.errors %}
+                    <div class="errors">{{ form.new_password1.errors }}</div>
+                {% endif %}
+            </div>
+
+            <div class="field">
+                <label for="id_new_password2">Confirmar nova senha</label>
+                {{ form.new_password2 }}
+                <div id="caps-warning-senha2" class="caps-warning">Caps Lock está ativado.</div>
+                {% if form.new_password2.errors %}
+                    <div class="errors">{{ form.new_password2.errors }}</div>
+                {% endif %}
+            </div>
+
+            <button type="submit">Salvar Nova Senha</button>
+        </form>
+    </div>
+
+    <script>
+        (function () {
+            const bindings = [
+                { inputId: 'id_new_password1', warningId: 'caps-warning-senha1' },
+                { inputId: 'id_new_password2', warningId: 'caps-warning-senha2' },
+            ];
+
+            const toggleWarning = (event, warning) => {
+                const capsOn = event.getModifierState && event.getModifierState('CapsLock');
+                warning.style.display = capsOn ? 'block' : 'none';
+            };
+
+            bindings.forEach(({ inputId, warningId }) => {
+                const input = document.getElementById(inputId);
+                const warning = document.getElementById(warningId);
+
+                if (!input || !warning) {
+                    return;
+                }
+
+                input.addEventListener('keydown', (event) => toggleWarning(event, warning));
+                input.addEventListener('keyup', (event) => toggleWarning(event, warning));
+                input.addEventListener('blur', () => {
+                    warning.style.display = 'none';
+                });
+            });
+        })();
+    </script>
+</body>
+</html>

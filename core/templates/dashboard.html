@@ -6,7 +6,7 @@
     <meta charset="UTF-8">
     <title>Dashboard</title>
 
-    <link rel="stylesheet" href="{% static 'main/dashboard.css' %}">
+    <link rel="stylesheet" href="{% static 'main/dashboard.css' %}?v=2">
     <style>
         .user-info {
             padding: 15px;
@@ -127,8 +127,6 @@
                         🏢 Administração
                     </div>
                     <div class="submenu" id="admin-submenu">
-                        <a href="{% url 'administracao' %}">📊 Gráfico Administração</a>
-                        <a href="{% url 'documentos' %}">📋 Documentos</a>
                         <a href="{% url 'contratos' %}">📄 Contratos</a>
                     </div>
                 </li>
@@ -159,7 +157,16 @@
             {% endif %}
 
             {% if user.role_profile.is_gerencia or user.role_profile.role == 'saude' %}
-                <li><a href="{% url 'saude_seguranca' %}">🏥 Saúde e Segurança</a></li>
+                <li>
+                    <div class="menu-toggle" onclick="toggleSubmenu('saude-submenu', this)">
+                        🏥 Saúde e Segurança
+                    </div>
+                    <div class="submenu" id="saude-submenu">
+                        <a href="{% url 'saude_seguranca' %}#painel-horimetro">🦺 Painel de Horimetro e Registro</a>
+                        <a href="{% url 'administracao' %}">📊 Gráfico Saúde e Segurança no Trabalho</a>
+                        <a href="{% url 'documentos' %}">📋 Cadastro ANDC</a>
+                    </div>
+                </li>
             {% endif %}
 
             {% if user.role_profile.is_gerencia or user.role_profile.role == 'suprimentos' %}
@@ -171,6 +178,8 @@
         <a href="{% url 'logout' %}" class="logout-btn">🚪 Sair</a>
 
     </div>
+
+    <button class="theme-toggle-btn" onclick="toggleTheme()" id="themeBtn">🌙 Dark</button>
 
     <div class="content">
         <h1>Dashboard</h1>
@@ -206,6 +215,21 @@
             submenu.classList.toggle('show');
             element.classList.toggle('open');
         }
+
+        function toggleTheme() {
+            const isDark = document.body.classList.toggle('dark-mode');
+            const btn = document.getElementById('themeBtn');
+            btn.textContent = isDark ? '☀️ Light' : '🌙 Dark';
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+        }
+
+        // Aplica tema salvo ao carregar
+        (function() {
+            if (localStorage.getItem('theme') === 'dark') {
+                document.body.classList.add('dark-mode');
+                document.getElementById('themeBtn').textContent = '☀️ Light';
+            }
+        })();
 
         const nomes = JSON.parse('{{ nomes_json|escapejs }}');
         const absenteismos = JSON.parse('{{ absenteismos_json|escapejs }}');

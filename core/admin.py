@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Atestado, UsuarioComRole
+from .models import Atestado, HorimetroRegistro, UsuarioComRole
 
 @admin.register(Atestado)
 class AtestadoAdmin(admin.ModelAdmin):
@@ -12,3 +12,10 @@ class UsuarioComRoleAdmin(admin.ModelAdmin):
     list_display = ('user', 'role', 'is_gerencia', 'created_at')
     search_fields = ('user__username',)
     list_filter = ('role', 'is_gerencia')
+
+
+@admin.register(HorimetroRegistro)
+class HorimetroRegistroAdmin(admin.ModelAdmin):
+    list_display = ('tipo_registro', 'veiculo', 'maquinario', 'placa', 'data_registro', 'quilometragem', 'horimetro', 'created_at')
+    search_fields = ('veiculo', 'maquinario', 'placa')
+    list_filter = ('tipo_registro', 'data_registro')

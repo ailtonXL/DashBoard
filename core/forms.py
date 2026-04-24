@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.models import User
 from django.contrib.auth.forms import AuthenticationForm
-from .models import Atestado
+from .models import Atestado, HorimetroRegistro
 
 
 class AtestadoForm(forms.ModelForm):
@@ -61,3 +61,60 @@ class LoginForm(AuthenticationForm):
         label='Senha',
         widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Digite sua senha'})
     )
+
+
+class HorimetroRegistroForm(forms.ModelForm):
+    class Meta:
+        model = HorimetroRegistro
+        fields = ['tipo_registro', 'veiculo', 'maquinario', 'placa', 'data_registro', 'quilometragem', 'horimetro']
+        labels = {
+            'tipo_registro': 'Tipo',
+            'veiculo': 'Veiculo',
+            'maquinario': 'Maquinario',
+            'placa': 'Placa',
+            'data_registro': 'Data',
+            'quilometragem': 'Quilometragem',
+            'horimetro': 'Horimetro',
+        }
+        widgets = {
+            'tipo_registro': forms.Select(),
+            'veiculo': forms.TextInput(attrs={'placeholder': 'Informe o nome ou identificacao do veiculo'}),
+            'maquinario': forms.TextInput(attrs={'placeholder': 'Informe o nome do maquinario'}),
+            'placa': forms.TextInput(attrs={'placeholder': 'ABC1D23', 'maxlength': '8'}),
+            'data_registro': forms.DateInput(attrs={'type': 'date'}),
+            'quilometragem': forms.NumberInput(attrs={'min': '0', 'step': '0.1', 'placeholder': 'Informe a quilometragem atual'}),
+            'horimetro': forms.NumberInput(attrs={'min': '0', 'step': '0.1', 'placeholder': 'Informe o horimetro atual'}),
+        }
+
+    def clean_placa(self):
+        placa = (self.cleaned_data.get('placa') or '').upper().replace('-', '').replace(' ', '')
+        tipo_registro = self.cleaned_data.get('tipo_registro')
+        if tipo_registro == 'maquina':
+            return ''
+        if len(placa) not in {7, 8}:
+            raise forms.ValidationError('Informe uma placa valida.')
+        return placa
+
+    def clean(self):
+        cleaned_data = super().clean()
+        tipo_registro = cleaned_data.get('tipo_registro')
+
+        if tipo_registro == 'maquina':
+            if not cleaned_data.get('maquinario'):
+                self.add_error('maquinario', 'Informe o nome do maquinario.')
+            if cleaned_data.get('horimetro') in (None, ''):
+                self.add_error('horimetro', 'Informe o horimetro.')
+
+            cleaned_data['veiculo'] = ''
+            cleaned_data['placa'] = ''
+            cleaned_data['quilometragem'] = None
+        else:
+            if not cleaned_data.get('veiculo'):
+                self.add_error('veiculo', 'Informe o nome do veiculo.')
+            if cleaned_data.get('quilometragem') in (None, ''):
+                self.add_error('quilometragem', 'Informe a quilometragem.')
+
+            cleaned_data['maquinario'] = ''
+            cleaned_data['horimetro'] = None
+
+        return cleaned_data

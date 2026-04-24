@@ -3,9 +3,9 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Administração</title>
+    <title>Saúde e Segurança no Trabalho</title>
 
-    <link rel="stylesheet" href="{% static 'main/adm.css' %}?v=2">
+    <link rel="stylesheet" href="{% static 'main/adm.css' %}?v=6">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
@@ -44,7 +44,7 @@
 
     <!-- ABA: DASHBOARD -->
     <div id="aba-dashboard" class="aba-content {% if aba_ativa == 'busca' %}hidden{% endif %}">
-        <h1>Administração</h1>
+        <h1>Saúde e Segurança no Trabalho</h1>
 
         <!-- KPIs -->
         <div class="kpi-container">
@@ -262,5 +262,12 @@ if (labels.length > 0) {
 }
 </script>
 
+<script>
+    (function() {
+        if (localStorage.getItem('theme') === 'dark') {
+            document.body.classList.add('dark-mode');
+        }
+    })();
+</script>
 </body>
 </html>
