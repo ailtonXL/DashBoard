@@ -121,7 +121,7 @@
 
         <ul class="menu">
 
-            {% if profile and (profile.is_gerencia or profile.role == 'admin') %}
+            {% if profile and profile.is_gerencia or profile.role == 'admin' %}
                 <li>
                     <div class="menu-toggle" onclick="toggleSubmenu('admin-submenu', this)">
                         🏢 Administração
@@ -132,31 +132,31 @@
                 </li>
             {% endif %}
 
-            {% if profile and (profile.is_gerencia or profile.role == 'gerencia') %}
+            {% if profile and profile.is_gerencia or profile.role == 'gerencia' %}
                 <li><a href="{% url 'gerencia' %}">👔 Gerência</a></li>
             {% endif %}
 
-            {% if profile and (profile.is_gerencia or profile.role == 'logistica') %}
+            {% if profile and profile.is_gerencia or profile.role == 'logistica' %}
                 <li><a href="{% url 'logistica' %}">📦 Logística</a></li>
             {% endif %}
 
-            {% if profile and (profile.is_gerencia or profile.role == 'manutencao') %}
+            {% if profile and profile.is_gerencia or profile.role == 'manutencao' %}
                 <li><a href="{% url 'manutencao' %}">🔧 Manutenção</a></li>
             {% endif %}
 
-            {% if profile and (profile.is_gerencia or profile.role == 'meio_ambiente') %}
+            {% if profile and profile.is_gerencia or profile.role == 'meio_ambiente' %}
                 <li><a href="{% url 'meio_ambiente' %}">🌿 Meio Ambiente</a></li>
             {% endif %}
 
-            {% if profile and (profile.is_gerencia or profile.role == 'operacoes') %}
+            {% if profile and profile.is_gerencia or profile.role == 'operacoes' %}
                 <li><a href="{% url 'operacoes' %}">⚙️ Operações</a></li>
             {% endif %}
 
-            {% if profile and (profile.is_gerencia or profile.role == 'qualidade') %}
+            {% if profile and profile.is_gerencia or profile.role == 'qualidade' %}
                 <li><a href="{% url 'qualidade_processos' %}">✓ Qualidade e Processos</a></li>
             {% endif %}
 
-            {% if profile and (profile.is_gerencia or profile.role == 'saude') %}
+            {% if profile and profile.is_gerencia or profile.role == 'saude' %}
                 <li>
                     <div class="menu-toggle" onclick="toggleSubmenu('saude-submenu', this)">
                         🏥 Saúde e Segurança
@@ -169,7 +169,7 @@
                 </li>
             {% endif %}
 
-            {% if profile and (profile.is_gerencia or profile.role == 'suprimentos') %}
+            {% if profile and profile.is_gerencia or profile.role == 'suprimentos' %}
                 <li><a href="{% url 'suprimentos' %}">📫 Suprimentos</a></li>
             {% endif %}
 
